@@ -1,0 +1,17 @@
+{
+  "name": "staging-ui",
+  "version": "0.0.0",
+  "repository": {
+	"type": "git",
+	"url": "https://github-isl-01.ca.com/vapp/staging-ui.git"
+  },
+  "devDependencies": {
+	"grunt-autoprefixer": "^3.0.3",
+	"grunt-contrib-clean": "^0.6.0",
+	"grunt-contrib-concat": "^0.5.1",
+	"grunt-contrib-copy": "^0.8.0",
+	"grunt-contrib-cssmin": "^0.12.3",
+	"grunt-contrib-uglify": "^0.9.1",
+	"grunt-usemin": "^3.0.0"
+  }
+}

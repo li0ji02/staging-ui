@@ -1,0 +1,44 @@
+/* Add some margin to the top of the alerts */
+#global-alert-holder {
+	margin-top: 20px;
+}
+
+.progress-total {
+	margin-top: 20px;
+	padding-top: 10px;
+}
+
+.progress-total .progress-label {
+	font-size: 20px;
+	color: #444;
+	font-weight: 700;
+	font-family: CA-Sans,Helvetica,Arial,Verdana,sans-serif;
+}
+
+.progress-item {
+	border: 1px solid rgba(0,0,0,0);
+	border-radius: 5px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-bottom: 5px;
+}
+
+.progress-label {
+	font-size: 11px;
+	padding-left: 0px;
+	margin-bottom: 3px;
+}
+
+.progress {
+	margin-bottom: 5px;
+}
+
+.progress-bar {
+	padding-top: 5px;
+}
+
+.faded {
+	opacity: 0.7;
+	transition: opacity 250ms ease;
+	-webkit-transition: opacity 250ms ease;
+}

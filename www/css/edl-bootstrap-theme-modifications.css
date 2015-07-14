@@ -1,0 +1,144 @@
+/* Fix image rendering in some browsers */
+.caLogo {
+	image-rendering: optimizequality;
+}
+
+/* Prevent the nav menu from expanding */
+.uisNavMenu.expanded {
+	width: 50px;
+}
+
+/* Remove the icon from the nav button */
+.nav-btn {
+	background: #22465E !important;
+	cursor: default !important;
+}
+
+/* Hide the EDL global nav and user nav (top-right) */
+.userNavWrapper {
+	display: none !important;
+}
+
+.container-fluid {
+	padding-top: 15px;
+}
+
+/* Fix the content height being calculated */
+.content {
+	height: auto !important;
+}
+
+.uisNavMenu:not(.expanded), .nav-btn {
+	width: 50px !important;
+}
+
+.uisNavMenu ul li .menuIcon {
+	margin: 17px !important;
+	margin-right: 35px !important;
+}
+
+/* Fixes sidebar items opening if mouse too close (annoying) */
+.menuItem > a {
+	padding-right: 0px !important;
+}
+
+.input-group-lg > .input-group-btn > .btn {
+	height: 44px !important;
+}
+
+/* Fix layout for application title */
+.uisHeader .title {
+	line-height: 60px;
+	height: 60px;
+
+	/* Prevent the header from moving out of place with a small window width */
+	position: fixed;
+	left: 130px;
+}
+
+.uisNavMenu.collapsed>ul>li.selected {
+	width: 50px;
+	height: 50px;
+}
+
+.uisNavMenu.collapsed>ul>li>a {
+	height: 50px;
+}
+
+.uisNavMenu.collapsed>ul>li:hover>ul {
+	left: 50px;
+}
+
+.uisNavMenu ul li .menuIcon+a {
+	padding-left: 50px;
+}
+
+.uisNavMenu.collapsed>ul>li:hover {
+	width: 270px !important;
+}
+
+/* Align the footer to the bottom of the viewport */
+footer, .ie-footer {
+	border-top: 1px solid #D8D8D8;
+	background-color: #FFFFFF;
+	position: fixed;
+	clear: both;
+	z-index: 1;
+	width: 100%;
+	left: 0;
+	bottom: 0;
+	text-align: center;
+	padding-bottom: 15px;
+	padding-top: 15px;
+	font-family: 'Arial';
+	font-style: normal;
+	font-size: 13px;
+	color: #58666C;
+	margin-left: 25px;
+}
+
+/* Remove margin on the paragraph so that the footer text is vertically centered */
+footer p {
+	margin: 0 !important;
+}
+
+/* Must be greater than the footer height or the footer overlaps content */
+body {
+	margin-bottom: 50px;
+}
+
+.nav-tabs>li {
+	margin-bottom: 0px; /* Fix for tab hover */
+}
+
+/* Bring popovers above the CA header */
+.popover {
+	z-index: 11000 !important;
+}
+
+/* Makes things readable on small devices */
+@media (max-width: 480px) {
+	body {
+		font-size: 11px;
+	}
+	h1 {
+		font-size: 16px;
+	}
+	p {
+		font-size: 11px;
+	}
+	.btn {
+		font-size: 14px;
+		padding: 4px 12px;
+	}
+	.title {
+		font-size: 12px !important;
+		padding-left: 0px !important;
+	}
+	.alert {
+		font-size: 10px;
+	}
+	.alert h4 {
+		font-size: 13px;
+	}
+}

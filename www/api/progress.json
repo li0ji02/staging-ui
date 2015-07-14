@@ -1,0 +1,196 @@
+[
+   {
+	  "ImageName":"https://storage.googleapis.com/kubernetes-release/release/v0.17.0/bin/linux/amd64/kube-apiserver",
+	  "Prgress":[
+		 {
+			"Status":"File already downloaded - No error",
+			"ProgressDetail":{
+			   "Current":0,
+			   "Total":0
+			},
+			"Id":""
+		 }
+	  ]
+   },
+   {
+	  "ImageName":"https://storage.googleapis.com/kubernetes-release/release/v0.17.0/bin/linux/amd64/kube-controller-manager",
+	  "Prgress":[
+		 {
+			"Status":"File already downloaded - No error",
+			"ProgressDetail":{
+			   "Current":0,
+			   "Total":0
+			},
+			"Id":""
+		 }
+	  ]
+   },
+   {
+	  "ImageName":"https://storage.googleapis.com/kubernetes-release/release/v0.17.0/bin/linux/amd64/kube-proxy",
+	  "Prgress":[
+		 {
+			"Status":"File already downloaded - No error",
+			"ProgressDetail":{
+			   "Current":0,
+			   "Total":0
+			},
+			"Id":""
+		 }
+	  ]
+   },
+   {
+	  "ImageName":"https://storage.googleapis.com/kubernetes-release/release/v0.17.0/bin/linux/amd64/kube-scheduler",
+	  "Prgress":[
+		 {
+			"Status":"File already downloaded - No error",
+			"ProgressDetail":{
+			   "Current":0,
+			   "Total":0
+			},
+			"Id":""
+		 }
+	  ]
+   },
+   {
+	  "ImageName":"https://storage.googleapis.com/kubernetes-release/release/v0.17.0/bin/linux/amd64/kubectl",
+	  "Prgress":[
+		 {
+			"Status":"File already downloaded - No error",
+			"ProgressDetail":{
+			   "Current":0,
+			   "Total":0
+			},
+			"Id":""
+		 }
+	  ]
+   },
+   {
+	  "ImageName":"https://storage.googleapis.com/kubernetes-release/release/v0.17.0/bin/linux/amd64/kubelet",
+	  "Prgress":[
+		 {
+			"Status":"File already downloaded - No error",
+			"ProgressDetail":{
+			   "Current":50,
+			   "Total":100
+			},
+			"Id":""
+		 }
+	  ]
+   },
+   {
+	  "ImageName":"https://github.com/kelseyhightower/setup-network-environment/releases/download/v1.0.0/setup-network-environment",
+	  "Prgress":[
+		 {
+			"Status":"Finished downloading",
+			"ProgressDetail":{
+			   "Current":2037015,
+			   "Total":2037015
+			},
+			"Id":""
+		 }
+	  ]
+   },
+   {
+	  "ImageName":"https://github.com/kelseyhightower/kube-register/releases/download/v0.0.4/kube-register-0.0.4-linux-amd64",
+	  "Prgress":[
+		 {
+			"Status":"Finished downloading",
+			"ProgressDetail":{
+			   "Current":6435560,
+			   "Total":6435560
+			},
+			"Id":""
+		 }
+	  ]
+   },
+   {
+	  "ImageName":"ubuntu:14.04",
+	  "Prgress":[
+		 {
+			"Status":"Status: Image is up to date for ubuntu:14.04",
+			"ProgressDetail":{
+			   "Current":0,
+			   "Total":1
+			},
+			"Id":""
+		 },
+		 {
+			"Status":"Pulling from ubuntu",
+			"ProgressDetail":{
+			   "Current":1,
+			   "Total":1
+			},
+			"Id":"14.04"
+		 },
+		 {
+			"Status":"Already exists",
+			"ProgressDetail":{
+			   "Current":0,
+			   "Total":1
+			},
+			"Id":"83e4dde6b9cf"
+		 },
+		 {
+			"Status":"Already exists",
+			"ProgressDetail":{
+			   "Current":0,
+			   "Total":1
+			},
+			"Id":"b670fb0c7ecd"
+		 },
+		 {
+			"Status":"Already exists",
+			"ProgressDetail":{
+			   "Current":1,
+			   "Total":1
+			},
+			"Id":"29460ac93442"
+		 },
+		 {
+			"Status":"Already exists",
+			"ProgressDetail":{
+			   "Current":0,
+			   "Total":0
+			},
+			"Id":"d2a0ecffe6fa"
+		 }
+	  ]
+   },
+   {
+	  "ImageName":"hello-world:latest",
+	  "Prgress":[
+		 {
+			"Status":"Status: Image is up to date for hello-world:latest",
+			"ProgressDetail":{
+			   "Current":0,
+			   "Total":0
+			},
+			"Id":""
+		 },
+		 {
+			"Status":"Pulling from hello-world",
+			"ProgressDetail":{
+			   "Current":0,
+			   "Total":0
+			},
+			"Id":"latest"
+		 },
+		 {
+			"Status":"Already exists",
+			"ProgressDetail":{
+			   "Current":0,
+			   "Total":0
+			},
+			"Id":"a8219747be10"
+		 },
+		 {
+			"Status":"Already exists",
+			"ProgressDetail":{
+			   "Current":0,
+			   "Total":0
+			},
+			"Id":"91c95931e552"
+		 }
+	  ]
+   }
+]
