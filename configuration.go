@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/kelseyhightower/envconfig"
 	"log"
+	"os"
 )
 
 const filesToBeDownloaded = `
@@ -56,7 +57,8 @@ func (config *Configuration) Read() {
 		config.DownloadFileNames = filesToBeDownloaded
 	}
 	if config.WWWRoot == "" {
-		config.WWWRoot = "/data/www"
+		currentDir, _ := os.Getwd()
+		config.WWWRoot = currentDir + "/www"
 	}
 	if config.Port == 0 {
 		config.Port = 80

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/rs/cors"
 	"io"
 	"log"
 	"net/http"
@@ -102,8 +103,11 @@ func main() {
 		}
 	}()
 
+	c := cors.New(cors.Options{AllowCredentials: true})
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/progress", handleProgress)
+	mux.Handle("/", c.Handler(http.FileServer(http.Dir(config.WWWRoot))))
 
 	http.ListenAndServe(fmt.Sprintf(":%d", config.Port), mux)
 }
