@@ -56,10 +56,28 @@ jQuery(document).ready(function ($) {
 						// Total up progress of all progress items
 						var progTotal   = 0;
 						var progCurrent = 0;
-						$.each( item.Prgress, function( index, prog ){
-							if (prog.ProgressDetail !== null) {
-								progTotal   += prog.ProgressDetail.Total;
-								progCurrent += prog.ProgressDetail.Current;
+						$.each( item.Progress, function( index, prog ){
+						
+							var alreadyDone = false;
+						
+							// If the progress item does not have an ID field
+							if (prog.Id == "") {
+								// If the status contains one of the following strings
+								if (prog.Status.indexOf("File already downloaded") !== -1
+								||  prog.Status.indexOf("Image is up to date") 	!== -1 
+								||  prog.Status.indexOf("Finished downloading") !== -1 ) {
+									console.log(item.ImageName);
+									alreadyDone = true;
+									progTotal   += 1;
+									progCurrent += 1;
+								}
+							}
+						
+							if (! alreadyDone) {
+								if (prog.ProgressDetail !== null) {
+									progTotal   += prog.ProgressDetail.Total;
+									progCurrent += prog.ProgressDetail.Current;
+								}
 							}
 						});
 

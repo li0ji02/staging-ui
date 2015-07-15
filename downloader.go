@@ -310,6 +310,7 @@ func (imagePuller *DockerImagePuller) Download() {
 		imagePuller.SetFailure(err)
 		return
 	}
+
 	if response.StatusCode != 200 {
 		log.Printf("Failed to pull docker image %s. HTTP status is - %s", imagePuller.Name, response.Status)
 		imagePuller.SetFailure(errors.New("HTTP status is - " + response.Status))

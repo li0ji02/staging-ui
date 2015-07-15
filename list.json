@@ -34,7 +34,10 @@
       }
    ],
    "DockerImages":[
-      "ubuntu:14.04",
-      "hellow-world:latest"
+      "store.vapp-security.solutions/vapp/cluster-proxy",
+      "gcr.io/google_containers/kube2sky",
+      "gcr.io/google_containers/skydns",
+      "gcr.io/google_containers/etcd",
+      "gcr.io/google_containers/pause"
    ]
 }
