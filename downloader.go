@@ -75,6 +75,10 @@ type FileDownloader struct {
 	Done         bool                  // if downloading has finished, could be successful or failed
 }
 
+func NewFileDownloader(oneFile FileToBeDownloaded) *FileDownloader {
+	return &FileDownloader{URL: oneFile.URL, FilePathName: oneFile.FilePathName, Status: NewNotStartedDownloadProgressInfo(oneFile.URL), StatusLock: &sync.RWMutex{}, Err: nil, Done: false}
+}
+
 func FileExists(filePath string) (bool, *time.Time) {
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {

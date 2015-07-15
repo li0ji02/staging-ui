@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"log"
 	"strings"
@@ -46,6 +47,21 @@ func NewProgressInfoDocker(info []byte) *ProgressInfo {
 	pInfo := &ProgressInfo{ProgressDetail: detail}
 	err := json.Unmarshal(info, pInfo)
 	if err != nil {
+		splitted := bytes.Split(info, []byte(`}{`))
+		if len(splitted) > 1 {
+			oneInfo := splitted[len(splitted)-1]
+			if len(oneInfo) > 0 {
+				newOneInfo := "{" + string(oneInfo)
+				err := json.Unmarshal([]byte(newOneInfo), pInfo)
+				log.Printf("NewProgressInfoDocker:try unmarshal again with - %s", newOneInfo)
+				if err == nil {
+					return pInfo
+				} else {
+					log.Printf("NewProgressInfoDocker error: %s", err.Error())
+				}
+			}
+		}
+
 		log.Printf("NewProgressInfoDocker error: %s", err.Error())
 		log.Printf("NewProgressInfoDocker: %s", string(info))
 		return &ProgressInfo{Status: "Failed to unmarchal status information from docker"}

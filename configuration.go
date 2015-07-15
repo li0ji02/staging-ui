@@ -3,9 +3,9 @@ package main
 import (
 	"github.com/kelseyhightower/envconfig"
 	"log"
-	"os"
 )
 
+/*
 const filesToBeDownloaded = `
 	{"URL":"https://storage.googleapis.com/kubernetes-release/release/v0.17.0/bin/linux/amd64/kube-apiserver", "FilePathName":"/opt/bin/kube-apiserver"}
 	{"URL":"https://storage.googleapis.com/kubernetes-release/release/v0.17.0/bin/linux/amd64/kube-controller-manager", "FilePathName":"/opt/bin/kube-controller-manager"}
@@ -16,12 +16,8 @@ const filesToBeDownloaded = `
 	{"URL":"https://github.com/kelseyhightower/setup-network-environment/releases/download/v1.0.0/setup-network-environment", "FilePathName":"/opt/bin/setup-network-environment"}
 	{"URL":"https://github.com/kelseyhightower/kube-register/releases/download/v0.0.4/kube-register-0.0.4-linux-amd64", "FilePathName":"/opt/bin/kube-register"}
 `
-
-/*
-const filesToBeDownloaded = `
-	{"URL":"https://githuba.com/kelseyhightower/setup-network-environment/releases/download/v1.0.0/setup-network-test", "FilePathName":"/opt/bin/setup-network-environment"}
-`
 */
+
 type Configuration struct {
 	// Static web files
 	WWWRoot string `envconfig:"WWW_ROOT"`
@@ -31,34 +27,29 @@ type Configuration struct {
 	TLSCert string `envconfig:"TLS_CERT"`
 	// Path to private key
 	TLSKey string `envconfig:"TLS_KEY"`
-	// Docker images to be pulled
-	PrePullDockerImageNames string `envconfig:"PREPULL_DOCKER_IMAGE_NAMES"`
-	// Files to be downloaed
-	DownloadFileNames string `envconfig:"DOWNLOAD_FILE_NAMES"`
 	// Maximum number of parallel downloads
 	MaximumParallelDownloads int `envconfig:"MAXIMUM_PARALLEL_DOWNLOADS"`
 	// Maximum number of retry to download
 	MaximumNumberRetry int `envconfig:"MAXIMUM_NUMBER_RETRY"`
+	// JSON file that contains the list of files to be downloaded and the
+	// docker images to be pulled
+	DownloadListFile string `envconfig:"DOWNLOAD_LIST_FILE"`
 }
 
 // Read the configuration from the environment
 // Defaults will be set for unset fields
-func (config *Configuration) Read() {
+func (config *Configuration) Read() error {
 	err := envconfig.Process("", config)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("Failed to load configuration, error is - " + err.Error())
+		return err
 	}
 
-	if config.PrePullDockerImageNames == "" {
-		config.PrePullDockerImageNames = "ubuntu:14.04 hello-world:latest"
-		//config.PrePullDockerImageNames = "hello-world:latest"
-	}
-	if config.DownloadFileNames == "" {
-		config.DownloadFileNames = filesToBeDownloaded
+	if config.DownloadListFile == "" {
+		config.DownloadListFile = "./list.json"
 	}
 	if config.WWWRoot == "" {
-		currentDir, _ := os.Getwd()
-		config.WWWRoot = currentDir + "/www"
+		config.WWWRoot = "/www"
 	}
 	if config.Port == 0 {
 		config.Port = 80
@@ -71,5 +62,5 @@ func (config *Configuration) Read() {
 	}
 
 	log.Printf("Staging UI configuration: %+v", config)
-	return
+	return nil
 }

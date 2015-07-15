@@ -9,7 +9,7 @@ jQuery(document).ready(function ($) {
 	var refreshRate = 2000;
 
 	// The HTML template for a progress element
-	progressItemTemplate = '<div class="progress-item row well well-sm">'+
+	progressItemTemplate = '<div class="progress-item row well well-sm" data-progress="0">'+
 								'<p class="progress-label col-md-12"></p>'+
 								'<div class="progress col-md-12">'+
 									'<div aria-valuenow="0" class="progress-bar progress-bar-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100">'+
@@ -22,7 +22,7 @@ jQuery(document).ready(function ($) {
 	(function updateProgress() {
 		$.ajax({
 				type: 'GET',
-				url: 'api/progress.json',
+				url: '/progress',
 				async: true,
 				cache: false,
 				contentType: 'application/json; charset=utf-8',
@@ -33,8 +33,13 @@ jQuery(document).ready(function ($) {
 				console.log(arguments);
 				console.log(errorThrown);
 				setTimeout(updateProgress, 1000 * 5);
+				$('#section-download').addClass("hidden");
+				$('#section-wait').removeClass("hidden");
 			})
 			.done(function (data) {
+				$('#section-download').removeClass("hidden");
+				$('#section-wait').addClass("hidden");
+
 				var totalProgress = 0;	// The total progress (average of all items)
 				var totalComplete = 0;	// The number of items complete
 
@@ -42,52 +47,71 @@ jQuery(document).ready(function ($) {
 
 					var progressName = item.ImageName.match(/[^\/]+$/gm, '')[0];
 
-					// Total up progress of all progress items
-					var progTotal   = 0;
-					var progCurrent = 0;
-					$.each( item.Prgress, function( index, prog ){
-						progTotal   += prog.ProgressDetail.Total;
-						progCurrent += prog.ProgressDetail.Current;
-					});
-
-					// Check for valid progTotal
-					if (progTotal > 0) {
-						var progPercent = Math.max(0, Math.min((progCurrent/progTotal)*100, 100));
-					} else {
-						var progPercent = 0;
-					}
-
 					// Find the element with the progressName if it exists
 					var element = $('.progress-item[data-item-name="'+progressName+'"]');
 
-					// If the progress item does not exist, create it
-					if (element.length == 0) {
-						console.log('New Progress Item', item);
+					// If not already completed
+					if (! element.hasClass('faded')) {
 
-						// Append a new element
-						$('#progress-item-container').append(progressItemTemplate);
+						// Total up progress of all progress items
+						var progTotal   = 0;
+						var progCurrent = 0;
+						$.each( item.Prgress, function( index, prog ){
+							if (prog.ProgressDetail !== null) {
+								progTotal   += prog.ProgressDetail.Total;
+								progCurrent += prog.ProgressDetail.Current;
+							}
+						});
 
-						// Set the new elements ID, label
-						element = $('.progress-item:last-of-type');
-						element.attr('data-item-name', progressName);
-						element.find('.progress-label').text(progressName);
-					}
+						// Check for valid progTotal
+						if (progTotal > 0) {
+							var progPercent = Math.max(0, Math.min((progCurrent/progTotal)*100, 100));
+						} else {
+							var progPercent = 0;
+						}
 
-					// Update the elements progress
-					element.attr('data-progress', progPercent);
-					element.find('.progress-bar').css('width', progPercent+'%');
-					element.find('span.percent-complete').text(progPercent);
+						// If the progress item does not exist, create it
+						if (element.length == 0) {
+							console.log('New Progress Item', item);
 
-					// Add to total progress
-					totalProgress += progPercent;
+							// Append a new element
+							$('#progress-item-container').append(progressItemTemplate);
 
-					// If complete, change contextual classes
-					if (progPercent >= 100) {
-						totalComplete++;
-						setProgressComplete(element);
+							// Set the new elements ID, label
+							element = $('.progress-item:last-of-type');
+							element.attr('data-item-name', progressName);
+							element.find('.progress-label').text(progressName);
+						}
+
+						// Catch downloads that reset to 0 after being complete
+						// TODO: This is probably a bad idea, but otherwise something server-side needs to change
+						if (progPercent == 0 && element.attr('data-progress') > 80) {
+							progPercent = 100;
+						}
+
+
+
+						// Can't go backwards
+						if (progPercent >= element.attr('data-progress')) {
+							// Update the elements progress
+							element.attr('data-progress', progPercent);
+							element.find('.progress-bar').css('width', progPercent+'%');
+							element.find('span.percent-complete').text(progPercent);
+						} else {
+							console.log("Progress went backwards");
+						}
+
+						// If complete, change contextual classes
+						if (progPercent >= 100) {
+							setProgressComplete(element);
+						}
 					} else {
-						setProgressIncomplete(element);
+						// Already complete, update totals
+						progPercent = 100;
+						totalComplete++;
 					}
+
+					totalProgress += progPercent;
 				});
 
 				// Calculate total progress by dividing by the number of progress items
@@ -106,7 +130,12 @@ jQuery(document).ready(function ($) {
 					allItemsComplete();
 				} else {
 					$('#section-download').removeClass("hidden");
-					setProgressIncomplete($('.progress-total'));
+					$('.progress-total').find('.progress-bar')
+							.addClass('progress-bar-info')
+							.addClass('progress-bar-striped')
+							.removeClass('progress-bar-success');
+					$('.progress-total').removeClass('faded');
+
 					setTimeout(updateProgress, refreshRate);
 				}
 
@@ -121,15 +150,6 @@ jQuery(document).ready(function ($) {
 				.removeClass('progress-bar-striped')
 				.addClass('progress-bar-success');
 		element.addClass('faded');
-	}
-
-	// Add/Remove contextual classes
-	function setProgressIncomplete(element) {
-		element.find('.progress-bar')
-				.addClass('progress-bar-info')
-				.addClass('progress-bar-striped')
-				.removeClass('progress-bar-success');
-		element.removeClass('faded');
 	}
 
 	// All items are completed
@@ -156,18 +176,4 @@ jQuery(document).ready(function ($) {
 		});
 		$wrapper.append($items);
 	}
-
-	// Init websocket (https://code.google.com/p/jquery-websocket/)
-	/*(function initSocket() {
-		var ws = $.websocket("ws://127.0.0.1:8080/", {
-			open: function() { },
-			close: function() { },
-			events: {
-				say: function(e) {
-					alert(e.data.name); // 'foo'
-					alert(e.data.text); // 'baa'
-				}
-			}
-		});
-	})();*/
 });
