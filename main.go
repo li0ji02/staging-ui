@@ -122,16 +122,6 @@ func main() {
 		waitGroup.Add(1)
 		defer waitGroup.Done()
 
-		// another goroutine to wait for all the goroutines to finish and then signal to system that we should exit
-		// placed here to make sure this goroutine starts after the nesting goroutine started and incremented the count in waitGroup
-		go func() {
-			waitGroup.Wait()
-			time.Sleep(3 * time.Second)
-			// log the final status of the downloads
-			log.Print(getProgress())
-			os.Exit(0)
-		}()
-
 		for _, downloader := range downloaders {
 			downloader := downloader
 			// send one value to the channel, maximum we can send before one is retrieved is config.MaximumParallelDownloads
@@ -166,6 +156,17 @@ func main() {
 				<-sem
 			}()
 		}
+
+		// another goroutine to wait for all the goroutines to finish and then signal to system that we should exit
+		// placed here to make sure this goroutine starts after the nesting goroutine started and all the download
+		// goroutines have been scheduled
+		go func() {
+			waitGroup.Wait()
+			time.Sleep(3 * time.Second)
+			// log the final status of the downloads
+			log.Print(getProgress())
+			os.Exit(0)
+		}()
 	}()
 
 	mux := http.NewServeMux()

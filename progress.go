@@ -28,34 +28,31 @@ type ProgressDetail struct {
 	Total   int64 // total number of bytes to be downloaded
 }
 
-func NewProgressDetail(c int64, t int64) *ProgressDetail {
-	return &ProgressDetail{Current: c, Total: t}
-}
-
 type ProgressInfo struct {
-	Status         string          // A description of current status
-	ProgressDetail *ProgressDetail // detailed number counts
-	Id             string          // id of the fs layer being pulled
+	Status         string         // A description of current status
+	Error          string         // If there is an error
+	ProgressDetail ProgressDetail // detailed number counts
+	Id             string         // id of the fs layer being pulled
 }
 
-func NewProgressInfoFile(s string, c int64, t int64) *ProgressInfo {
-	return &ProgressInfo{Status: s, ProgressDetail: NewProgressDetail(c, t)}
+func NewProgressInfoFile(status string, errStr string, current int64, total int64) *ProgressInfo {
+	return &ProgressInfo{Status: status, Error: errStr, ProgressDetail: ProgressDetail{Current: current, Total: total}}
 }
 
 func NewProgressInfoDocker(info []byte) *ProgressInfo {
-	detail := &ProgressDetail{}
-	pInfo := &ProgressInfo{ProgressDetail: detail}
-	err := json.Unmarshal(info, pInfo)
+	pInfo := ProgressInfo{}
+	err := json.Unmarshal(info, &pInfo)
 	if err != nil {
 		splitted := bytes.Split(info, []byte(`}{`))
 		if len(splitted) > 1 {
 			oneInfo := splitted[len(splitted)-1]
 			if len(oneInfo) > 0 {
 				newOneInfo := "{" + string(oneInfo)
-				err := json.Unmarshal([]byte(newOneInfo), pInfo)
+				err := json.Unmarshal([]byte(newOneInfo), &pInfo)
 				log.Printf("NewProgressInfoDocker:try unmarshal again with - %s", newOneInfo)
 				if err == nil {
-					return pInfo
+					//log.Printf("NewProgressInfoDocker: ProgressInfo to be returned (second unmarshal) - %+v", pInfo)
+					return &pInfo
 				} else {
 					log.Printf("NewProgressInfoDocker error: %s", err.Error())
 				}
@@ -66,7 +63,8 @@ func NewProgressInfoDocker(info []byte) *ProgressInfo {
 		log.Printf("NewProgressInfoDocker: %s", string(info))
 		return &ProgressInfo{Status: "Failed to unmarchal status information from docker"}
 	} else {
-		return pInfo
+		//log.Printf("NewProgressInfoDocker: ProgressInfo to be returned (first unmarshal) - %+v", pInfo)
+		return &pInfo
 	}
 }
 

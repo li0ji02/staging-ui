@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -19,10 +20,10 @@ import (
 const failedToMarshal = "Failed to generate JSON string from status"
 const statusDownloading = "Downloading"
 const statusFinished = "Finished downloading"
-const statusInvalidUrl = "Invalid URL - %s"
-const statusFailedToCreateFile = "Failed to create file - %s"
-const statusFailedToOpenFile = "Failed to open file for writting - %s"
-const statusFailedToDownload = "Failed to download file - %s"
+const statusInvalidUrl = "Error: Invalid URL - %s"
+const statusFailedToCreateFile = "Error: Failed to create file - %s"
+const statusFailedToOpenFile = "Error: Failed to open file for writting - %s"
+const statusFailedToDownload = "Error: Failed to download file - %s"
 const statusAlreadyDownloaded = "File already downloaded - %s"
 
 const daemonUrl = "unix:///var/run/docker.sock"
@@ -58,9 +59,9 @@ func (dr *FileDownloadReader) Read(p []byte) (int, error) {
 
 	if err == io.EOF {
 		log.Printf("%s - Download reached EOF", dr.fileDownloader.URL)
-		dr.fileDownloader.UpdateProgressInfo(statusFinished, dr.current, dr.total)
+		dr.fileDownloader.UpdateProgressInfo(statusFinished, "", dr.current, dr.total)
 	} else {
-		dr.fileDownloader.UpdateProgressInfo(statusDownloading, dr.current, dr.total)
+		dr.fileDownloader.UpdateProgressInfo(statusDownloading, "", dr.current, dr.total)
 	}
 
 	return n, err
@@ -79,15 +80,15 @@ func NewFileDownloader(oneFile FileToBeDownloaded) *FileDownloader {
 	return &FileDownloader{URL: oneFile.URL, FilePathName: oneFile.FilePathName, Status: NewNotStartedDownloadProgressInfo(oneFile.URL), StatusLock: &sync.RWMutex{}, Err: nil, Done: false}
 }
 
-func FileExists(filePath string) (bool, *time.Time) {
+func FileExists(filePath string) (bool, *time.Time, int64) {
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return false, nil
+			return false, nil, 0
 		}
 	}
 	time := fileInfo.ModTime()
-	return true, &time
+	return true, &time, fileInfo.Size()
 }
 
 func (downloader *FileDownloader) Download() {
@@ -95,7 +96,7 @@ func (downloader *FileDownloader) Download() {
 
 	// parse the URL first to make sure it is valid
 	if _, err := url.Parse(downloader.URL); err != nil {
-		downloader.UpdateProgressInfo(fmt.Sprintf(statusInvalidUrl, err.Error()), 0, 0)
+		downloader.UpdateProgressInfo("", fmt.Sprintf(statusInvalidUrl, err.Error()), 0, 0)
 		downloader.Err = err
 		downloader.Done = true
 		return
@@ -103,26 +104,34 @@ func (downloader *FileDownloader) Download() {
 
 	var tempFile *os.File
 
-	// check to see if the file exists already, if it exists get the last modified time
-	fileExists, fileModTime := FileExists(downloader.FilePathName)
+	// check to see if the file exists already, if it exists get the last modified time and size
+	fileExists, fileModTime, fileSize := FileExists(downloader.FilePathName)
 	if fileExists {
-		log.Printf("File already exists - %s. Last Modified time of the file is - %s", downloader.FilePathName, fileModTime.String())
+		log.Printf("File already exists - %s. Last Modified time of the file is - %s. Size of the file is - %d", downloader.FilePathName, fileModTime.String(), fileSize)
 
 		if !fileModTime.IsZero() {
 			// check the last-modified time on the resource that the URL points to
 			response, err := http.Head(downloader.URL)
 			// ignore errors
 			if err == nil && response.StatusCode == 200 {
-				urlLastModified := response.Header.Get("Last-Modified")
+				urlLastModified := response.Header.Get("last-modified")
 				log.Printf("Checking Last-Modified header for URL - %s. Last-Modified header is - %s", downloader.URL, urlLastModified)
 				urlModTime, err := time.Parse(http.TimeFormat, urlLastModified)
 				// again ignore errors
 				if err == nil && fileModTime.After(urlModTime) {
-					// we already have the file downloaded with the current content, so don't need to dowanload again
-					downloader.UpdateProgressInfo(fmt.Sprintf(statusAlreadyDownloaded, "No error"), 0, 0)
-					downloader.Err = nil
-					downloader.Done = true
-					return
+					// check the size of the file as well
+					contentLen := response.Header.Get("content-length")
+					if contentLen != "" {
+						len64, err := strconv.ParseInt(contentLen, 10, 64)
+						if err == nil && len64 == fileSize {
+							// we already have the file downloaded with the current content, so don't need to dowanload again
+							downloader.UpdateProgressInfo(fmt.Sprintf(statusAlreadyDownloaded, "No error"), "", 0, 0)
+							downloader.Err = nil
+							downloader.Done = true
+							return
+						}
+					}
+
 				}
 			} else {
 				if err != nil {
@@ -138,7 +147,7 @@ func (downloader *FileDownloader) Download() {
 		tempFile, openErr = os.OpenFile(downloader.FilePathName, os.O_WRONLY|os.O_TRUNC, 0666)
 		if openErr != nil {
 			log.Printf("Failed to open file %s to write to. Error is - %s", downloader.FilePathName, openErr.Error())
-			downloader.UpdateProgressInfo(fmt.Sprintf(statusFailedToOpenFile, openErr.Error()), 0, 0)
+			downloader.UpdateProgressInfo("", fmt.Sprintf(statusFailedToOpenFile, openErr.Error()), 0, 0)
 			downloader.Err = openErr
 			downloader.Done = true
 			return
@@ -149,7 +158,7 @@ func (downloader *FileDownloader) Download() {
 		tempFile, createErr = os.Create(downloader.FilePathName)
 		if createErr != nil {
 			log.Printf("Failed to create file %s. Error is - %s", downloader.FilePathName, createErr.Error())
-			downloader.UpdateProgressInfo(fmt.Sprintf(statusFailedToCreateFile, createErr.Error()), 0, 0)
+			downloader.UpdateProgressInfo("", fmt.Sprintf(statusFailedToCreateFile, createErr.Error()), 0, 0)
 			downloader.Err = createErr
 			downloader.Done = true
 			return
@@ -169,7 +178,7 @@ func (downloader *FileDownloader) Download() {
 	response, err := client.Get(downloader.URL)
 	if err != nil {
 		log.Printf("Failed to download %s. Error is - %s", downloader.URL, err.Error())
-		downloader.UpdateProgressInfo(fmt.Sprintf(statusFailedToDownload, err.Error()), 0, 0)
+		downloader.UpdateProgressInfo("", fmt.Sprintf(statusFailedToDownload, err.Error()), 0, 0)
 		downloader.Err = err
 		downloader.Done = true
 		return
@@ -177,7 +186,7 @@ func (downloader *FileDownloader) Download() {
 
 	if response.StatusCode != 200 {
 		log.Printf("Failed to download %s. HTTP status is - %s", downloader.URL, response.Status)
-		downloader.UpdateProgressInfo(fmt.Sprintf(statusFailedToDownload, response.Status), 0, 0)
+		downloader.UpdateProgressInfo("", fmt.Sprintf(statusFailedToDownload, response.Status), 0, 0)
 		downloader.Err = err
 		downloader.Done = true
 		return
@@ -192,7 +201,7 @@ func (downloader *FileDownloader) Download() {
 	if _, err := io.Copy(tempFile, downloadReader); err != nil {
 		defer os.Remove(tempFileName)
 		log.Printf("Failed to save %s. Error is - %s", downloader.URL, err.Error())
-		downloader.UpdateProgressInfo(fmt.Sprintf(statusFailedToDownload, err.Error()), 0, 0)
+		downloader.UpdateProgressInfo("", fmt.Sprintf(statusFailedToDownload, err.Error()), 0, 0)
 		downloader.Err = err
 		downloader.Done = true
 		return
@@ -226,8 +235,8 @@ func (downloader *FileDownloader) GetProgressInfo() string {
 	}
 }
 
-func (downloader *FileDownloader) UpdateProgressInfo(s string, c int64, t int64) {
-	pInfo := NewDownloadProgressInfo(downloader.URL, NewProgressInfoFile(s, c, t))
+func (downloader *FileDownloader) UpdateProgressInfo(status string, errStr string, current int64, total int64) {
+	pInfo := NewDownloadProgressInfo(downloader.URL, NewProgressInfoFile(status, errStr, current, total))
 
 	downloader.StatusLock.Lock()
 	defer downloader.StatusLock.Unlock()
@@ -249,6 +258,7 @@ type PullImageReader struct {
 func (pr *PullImageReader) Read(p []byte) (int, error) {
 	n, err := pr.Reader.Read(p)
 	if n > 0 {
+		//log.Printf("Pull image read - %s", string(p[0:n]))
 		pr.dockerImagePuller.UpdateProgressInfo(p[0:n])
 	}
 	if err == io.EOF {
